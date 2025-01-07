@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2040 Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #faf8ef;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #d6d1b1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: rgb(21, 20, 20);
+            border-radius: 10px;
+            transition: background-color 0.3s ease, transform 0.1s ease-in-out;
+        }
+
+        .cell-2 { background-color: #a36f3b; }
+        .cell-4 { background-color: #d7e10b; }
+        .cell-8 { background-color: #e47311; }
+        .cell-16 { background-color: #91e711; }
+        .cell-32 { background-color: #13db6a; }
+        .cell-64 { background-color: #0fdfd5; }
+        .cell-128 { background-color: #cc6ee2ca; }
+        .cell-256 { background-color: #105ecb; }
+        .cell-512 { background-color: #e613c9; }
+        .cell-1024 { background-color: #a03d0c; }
+        .cell-2048 { background-color: #ed2e2e; }
+        .cell-2040 { background-color: #089545; }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #8f8f8f;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: #6f6f6f;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="score">Score: <span id="score">0</span></div>
+            <button class="button" id="reset-btn">Reset Game</button>
+        </div>
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const scoreElement = document.getElementById('score');
+        const resetButton = document.getElementById('reset-btn');
+
+        const gridSize = 4;
+        let board = [];
+        let score = 0;
+
+      
+        const directions = {
+            up: [-1, 0],
+            down: [1, 0],
+            left: [0, -1],
+            right: [0, 1]
+        };
+
+      
+        function initializeBoard() {
+            board = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+            score = 0;
+            updateBoard();
+            addRandomTile();
+            addRandomTile();
+        }
+
+
+        function addRandomTile() {
+            const emptyCells = [];
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    if (board[row][col] === 0) {
+                        emptyCells.push([row, col]);
+                    }
+                }
+            }
+
+            if (emptyCells.length === 0) return;
+
+            const randomIndex = Math.floor(Math.random() * emptyCells.length);
+            const [row, col] = emptyCells[randomIndex];
+            board[row][col] = Math.random() < 0.9 ? 2 : 4;
+
+            updateBoard();
+        }
+
+        
+        function updateBoard() {
+            grid.innerHTML = '';
+            board.forEach((row, rowIndex) => {
+                row.forEach((cellValue, colIndex) => {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    if (cellValue !== 0) {
+                        cell.classList.add(`cell-${cellValue}`);
+                        cell.textContent = cellValue;
+                    }
+                    grid.appendChild(cell);
+                });
+            });
+
+            scoreElement.textContent = score;
+        }
+
+       
+        function slideAndMerge(board, direction) {
+            const [rowDir, colDir] = direction;
+            let moved = false;
+            let newBoard = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    let r = row;
+                    let c = col;
+                    if (rowDir === 1) r = gridSize - 1 - row;
+                    if (colDir === 1) c = gridSize - 1 - col;
+
+                    if (board[r][c] !== 0) {
+                        let value = board[r][c];
+                        let nextRow = r + rowDir;
+                        let nextCol = c + colDir;
+
+                        while (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridSize) {
+                            if (board[nextRow][nextCol] === 0) {
+                                board[nextRow][nextCol] = value;
+                                board[r][c] = 0;
+                                r = nextRow;
+                                c = nextCol;
+                                moved = true;
+                            } else if (board[nextRow][nextCol] === value) {
+                                board[nextRow][nextCol] = value * 2;
+                                board[r][c] = 0;
+                                score += value * 2;
+                                moved = true;
+                                break;
+                            } else {
+                                break;
+                            }
+                            nextRow += rowDir;
+                            nextCol += colDir;
+                        }
+                    }
+                }
+            }
+            return moved;
+        }
+
+        
+        function move(direction) {
+            const moved = slideAndMerge(board, direction);
+            if (moved) {
+                addRandomTile();
+            }
+            updateBoard();
+            checkGameOver();
+        }
+
+    
+        function checkGameOver() {
+            let gameOver = true;
+
+         
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    if (board[row][col] === 0) {
+                        gameOver = false;
+                        break;
+                    }
+                }
+            }
+
+           
+            if (gameOver) {
+                for (let row = 0; row < gridSize; row++) {
+                    for (let col = 0; col < gridSize; col++) {
+                        if (row + 1 < gridSize && board[row][col] === board[row + 1][col]) {
+                            gameOver = false;
+                            break;
+                        }
+                        if (col + 1 < gridSize && board[row][col] === board[row][col + 1]) {
+                            gameOver = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (gameOver) {
+                alert('Game Over! Final Score: ' + score);
+                initializeBoard();
+            }
+        }
+
+       
+        function handleKeyDown(event) {
+            if (event.key === 'ArrowUp') move(directions.up);
+            if (event.key === 'ArrowDown') move(directions.down);
+            if (event.key === 'ArrowLeft') move(directions.left);
+            if (event.key === 'ArrowRight') move(directions.right);
+        }
+
+        
+        resetButton.addEventListener('click', initializeBoard);
+
+       
+        window.addEventListener('keydown', handleKeyDown);
+        initializeBoard();
+    </script>
+</body>
+
+</html>
