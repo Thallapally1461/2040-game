@@ -21,19 +21,21 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 90vw;
+            max-width: 400px;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 100px);
-            grid-template-rows: repeat(4, 100px);
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 20px;
+            width: 100%;
+            aspect-ratio: 1; /* To maintain a square grid */
         }
 
         .cell {
-            width: 100px;
-            height: 100px;
             background-color: #d6d1b1;
             display: flex;
             justify-content: center;
@@ -103,7 +105,6 @@
         let board = [];
         let score = 0;
 
-      
         const directions = {
             up: [-1, 0],
             down: [1, 0],
@@ -111,7 +112,7 @@
             right: [0, 1]
         };
 
-      
+        // Initialize the game board
         function initializeBoard() {
             board = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
             score = 0;
@@ -120,7 +121,7 @@
             addRandomTile();
         }
 
-
+        // Add a random tile (2 or 4)
         function addRandomTile() {
             const emptyCells = [];
             for (let row = 0; row < gridSize; row++) {
@@ -140,7 +141,7 @@
             updateBoard();
         }
 
-        
+        // Update the board visually
         function updateBoard() {
             grid.innerHTML = '';
             board.forEach((row, rowIndex) => {
@@ -158,7 +159,7 @@
             scoreElement.textContent = score;
         }
 
-       
+        // Function to slide and merge tiles
         function slideAndMerge(board, direction) {
             const [rowDir, colDir] = direction;
             let moved = false;
@@ -201,7 +202,7 @@
             return moved;
         }
 
-        
+        // Handle move based on direction
         function move(direction) {
             const moved = slideAndMerge(board, direction);
             if (moved) {
@@ -211,11 +212,10 @@
             checkGameOver();
         }
 
-    
+        // Check if the game is over
         function checkGameOver() {
             let gameOver = true;
 
-         
             for (let row = 0; row < gridSize; row++) {
                 for (let col = 0; col < gridSize; col++) {
                     if (board[row][col] === 0) {
@@ -225,7 +225,6 @@
                 }
             }
 
-           
             if (gameOver) {
                 for (let row = 0; row < gridSize; row++) {
                     for (let col = 0; col < gridSize; col++) {
@@ -247,19 +246,46 @@
             }
         }
 
-       
-        function handleKeyDown(event) {
-            if (event.key === 'ArrowUp') move(directions.up);
-            if (event.key === 'ArrowDown') move(directions.down);
-            if (event.key === 'ArrowLeft') move(directions.left);
-            if (event.key === 'ArrowRight') move(directions.right);
+        // Handle touch events
+        let startX, startY, endX, endY;
+        
+        function handleTouchStart(event) {
+            const touch = event.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
         }
 
-        
+        function handleTouchEnd(event) {
+            const touch = event.changedTouches[0];
+            endX = touch.clientX;
+            endY = touch.clientY;
+
+            const diffX = endX - startX;
+            const diffY = endY - startY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 0) {
+                    move(directions.right);
+                } else {
+                    move(directions.left);
+                }
+            } else {
+                if (diffY > 0) {
+                    move(directions.down);
+                } else {
+                    move(directions.up);
+                }
+            }
+        }
+
+        // Add event listeners for touch events
+        grid.addEventListener('touchstart', handleTouchStart);
+        grid.addEventListener('touchend', handleTouchEnd);
+
+        // Handle reset button click
         resetButton.addEventListener('click', initializeBoard);
 
-       
-        window.addEventListener('keydown', handleKeyDown);
+        // Initialize the game
         initializeBoard();
     </script>
 </body>
