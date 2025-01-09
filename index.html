@@ -15,6 +15,7 @@
             align-items: center;
             height: 100vh;
             background-color: #faf8ef;
+            overflow: hidden; 
         }
 
         .game-container {
@@ -23,6 +24,11 @@
             align-items: center;
             width: 90vw;
             max-width: 400px;
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            z-index: 1000; 
         }
 
         .grid {
@@ -32,7 +38,7 @@
             gap: 10px;
             margin-bottom: 20px;
             width: 100%;
-            aspect-ratio: 1; /* To maintain a square grid */
+            aspect-ratio: 1; 
         }
 
         .cell {
@@ -112,7 +118,7 @@
             right: [0, 1]
         };
 
-        // Initialize the game board
+   
         function initializeBoard() {
             board = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
             score = 0;
@@ -121,7 +127,7 @@
             addRandomTile();
         }
 
-        // Add a random tile (2 or 4)
+       
         function addRandomTile() {
             const emptyCells = [];
             for (let row = 0; row < gridSize; row++) {
@@ -141,7 +147,7 @@
             updateBoard();
         }
 
-        // Update the board visually
+        
         function updateBoard() {
             grid.innerHTML = '';
             board.forEach((row, rowIndex) => {
@@ -159,11 +165,10 @@
             scoreElement.textContent = score;
         }
 
-        // Function to slide and merge tiles
+        
         function slideAndMerge(board, direction) {
             const [rowDir, colDir] = direction;
             let moved = false;
-            let newBoard = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
 
             for (let row = 0; row < gridSize; row++) {
                 for (let col = 0; col < gridSize; col++) {
@@ -202,7 +207,7 @@
             return moved;
         }
 
-        // Handle move based on direction
+       
         function move(direction) {
             const moved = slideAndMerge(board, direction);
             if (moved) {
@@ -212,7 +217,7 @@
             checkGameOver();
         }
 
-        // Check if the game is over
+        
         function checkGameOver() {
             let gameOver = true;
 
@@ -246,9 +251,9 @@
             }
         }
 
-        // Handle touch events
+     
         let startX, startY, endX, endY;
-        
+
         function handleTouchStart(event) {
             const touch = event.touches[0];
             startX = touch.clientX;
@@ -278,14 +283,14 @@
             }
         }
 
-        // Add event listeners for touch events
+       
         grid.addEventListener('touchstart', handleTouchStart);
         grid.addEventListener('touchend', handleTouchEnd);
 
-        // Handle reset button click
+       
         resetButton.addEventListener('click', initializeBoard);
 
-        // Initialize the game
+       
         initializeBoard();
     </script>
 </body>
